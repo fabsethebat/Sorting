@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Storage & Grocery Manager - Supabase</title>
+<title>Storage & Grocery Manager (Supabase)</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -124,7 +124,6 @@
 <body>
 
 <div id="app">
-  <!-- Left Column -->
   <div id="leftColumn">
     <div class="list-container">
       <h3>Fridge</h3>
@@ -136,7 +135,6 @@
     </div>
   </div>
 
-  <!-- Center Column -->
   <div id="centerColumn">
     <label for="locationSelect">Select Location</label>
     <select id="locationSelect">
@@ -155,7 +153,6 @@
     <button id="addBtn">Add Item</button>
   </div>
 
-  <!-- Right Column -->
   <div id="rightColumn">
     <div class="list-container">
       <h3>Freezer 1</h3>
@@ -168,69 +165,123 @@
   </div>
 </div>
 
-<!-- Supabase JS Client -->
+<!-- Supabase JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 
 <script>
-  // Initialize Supabase
-  const supabaseUrl = 'https://klpcrupzetzwtcgwqusa.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  const SUPABASE_URL = 'https://klpcrupzetzwtcgwqusa.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY';
 
-  // Local data cache (maps location -> array of items)
-  // Each item: { id, name, section }
-  const dataStore = {
+  const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let dataStore = {
     fridge: [],
     grocery: [],
     freezer1: [],
     freezer2: []
   };
 
-  // Load data from Supabase
+  function renderList(location) {
+    const ul = document.getElementById(location + 'List');
+    ul.innerHTML = '';
+
+    dataStore[location].forEach((item) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${escapeHtml(item.name)}${item.section ? ' <span class="section">(' + escapeHtml(item.section) + ')</span>' : ''}</span>`;
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'X';
+      delBtn.className = 'delete-btn';
+      delBtn.onclick = async () => {
+        if (confirm('Delete this item?')) {
+          await deleteItem(item.id);
+          await loadData();
+        }
+      };
+
+      li.appendChild(delBtn);
+      ul.appendChild(li);
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   async function loadData() {
     const { data, error } = await supabase
       .from('storage_items')
       .select('*')
-      .order('id', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) {
-      alert('Error loading data from server: ' + error.message);
+      alert('Error loading data: ' + error.message);
       return;
     }
 
-    // Clear local cache
-    for (const loc in dataStore) {
-      dataStore[loc] = [];
-    }
+    dataStore = { fridge: [], grocery: [], freezer1: [], freezer2: [] };
 
-    // Fill dataStore by location
     data.forEach(item => {
       if (dataStore[item.location]) {
-        dataStore[item.location].push({
-          id: item.id,
-          name: item.name,
-          section: item.section
-        });
+        dataStore[item.location].push(item);
       }
     });
 
-    renderAll();
+    for (const loc in dataStore) {
+      renderList(loc);
+    }
   }
 
-  // Save a new item to Supabase
   async function addItem(location, name, section) {
     const { data, error } = await supabase
       .from('storage_items')
-      .insert([{ location, name, section }]);
+      .insert([{ location, name, section }])
+      .select();
 
     if (error) {
       alert('Error adding item: ' + error.message);
+      return false;
+    }
+
+    return true;
+  }
+
+  async function deleteItem(id) {
+    const { error } = await supabase
+      .from('storage_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Error deleting item: ' + error.message);
+      return false;
+    }
+
+    return true;
+  }
+
+  document.getElementById('addBtn').onclick = async () => {
+    const location = document.getElementById('locationSelect').value;
+    const name = document.getElementById('itemNameInput').value.trim();
+    const section = document.getElementById('itemSectionInput').value.trim();
+
+    if (!name) {
+      alert('Item name cannot be empty.');
       return;
     }
 
-    await loadData(); // reload after add
-  }
+    const success = await addItem(location, name, section);
+    if (success) {
+      document.getElementById('itemNameInput').value = '';
+      document.getElementById('itemSectionInput').value = '';
+      await loadData();
+    }
+  };
 
-  // Delete item by id
-  async function deleteItem(id) {
-    const {
+  loadData();
+</script>
+
+</body>
+</html>
