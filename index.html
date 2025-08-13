@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Storage & Grocery Manager</title>
+<title>Storage & Grocery Manager - Supabase</title>
 <style>
-  /* Reset & base */
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -17,11 +14,7 @@
     display: flex;
     flex-direction: column;
   }
-  h2 {
-    margin: 0 0 15px 0;
-  }
-
-  /* Container */
+  h2, h3 { margin: 0 0 15px 0; }
   #app {
     max-width: 1200px;
     margin: 30px auto;
@@ -33,8 +26,6 @@
     gap: 25px;
     height: 80vh;
   }
-
-  /* Left and Right columns */
   #leftColumn, #rightColumn {
     display: flex;
     flex-direction: column;
@@ -48,11 +39,6 @@
     flex-grow: 1;
     overflow-y: auto;
   }
-  .list-container h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-  }
-
   ul {
     list-style: none;
     padding: 0;
@@ -72,8 +58,8 @@
     font-size: 0.85em;
     color: #555;
     font-style: italic;
+    margin-left: 6px;
   }
-
   button.delete-btn {
     background: #e74c3c;
     border: none;
@@ -87,8 +73,6 @@
   button.delete-btn:hover {
     background: #c0392b;
   }
-
-  /* Center column (form) */
   #centerColumn {
     display: flex;
     flex-direction: column;
@@ -97,7 +81,6 @@
     border-radius: 15px;
     padding: 20px;
   }
-
   label {
     font-weight: 600;
   }
@@ -113,7 +96,6 @@
     outline: none;
     border-color: #4caf50;
   }
-
   button#addBtn {
     background: #4caf50;
     border: none;
@@ -128,8 +110,6 @@
   button#addBtn:hover {
     background: #388e3c;
   }
-
-  /* Responsive */
   @media (max-width: 900px) {
     #app {
       grid-template-columns: 1fr;
@@ -143,123 +123,114 @@
 </head>
 <body>
 
-  <div id="app">
-    <!-- Left: Fridge & Grocery -->
-    <div id="leftColumn">
-      <div class="list-container" id="fridgeListContainer">
-        <h3>Fridge</h3>
-        <ul id="fridgeList"></ul>
-      </div>
-      <div class="list-container" id="groceryListContainer">
-        <h3>Grocery List</h3>
-        <ul id="groceryList"></ul>
-      </div>
+<div id="app">
+  <!-- Left Column -->
+  <div id="leftColumn">
+    <div class="list-container">
+      <h3>Fridge</h3>
+      <ul id="fridgeList"></ul>
     </div>
-
-    <!-- Center: Form -->
-    <div id="centerColumn">
-      <label for="locationSelect">Select Location</label>
-      <select id="locationSelect">
-        <option value="fridge">Fridge</option>
-        <option value="grocery">Grocery List</option>
-        <option value="freezer1">Freezer 1</option>
-        <option value="freezer2">Freezer 2</option>
-      </select>
-
-      <label for="itemNameInput">Item Name</label>
-      <input type="text" id="itemNameInput" placeholder="Enter item name" />
-
-      <label for="itemSectionInput">Shelf / Compartment (optional)</label>
-      <input type="text" id="itemSectionInput" placeholder="Enter shelf or compartment" />
-
-      <button id="addBtn">Add Item</button>
-    </div>
-
-    <!-- Right: Freezer 1 & Freezer 2 -->
-    <div id="rightColumn">
-      <div class="list-container" id="freezer1ListContainer">
-        <h3>Freezer 1</h3>
-        <ul id="freezer1List"></ul>
-      </div>
-      <div class="list-container" id="freezer2ListContainer">
-        <h3>Freezer 2</h3>
-        <ul id="freezer2List"></ul>
-      </div>
+    <div class="list-container">
+      <h3>Grocery List</h3>
+      <ul id="groceryList"></ul>
     </div>
   </div>
 
+  <!-- Center Column -->
+  <div id="centerColumn">
+    <label for="locationSelect">Select Location</label>
+    <select id="locationSelect">
+      <option value="fridge">Fridge</option>
+      <option value="grocery">Grocery List</option>
+      <option value="freezer1">Freezer 1</option>
+      <option value="freezer2">Freezer 2</option>
+    </select>
+
+    <label for="itemNameInput">Item Name</label>
+    <input type="text" id="itemNameInput" placeholder="Enter item name" />
+
+    <label for="itemSectionInput">Shelf / Compartment (optional)</label>
+    <input type="text" id="itemSectionInput" placeholder="Enter shelf or compartment" />
+
+    <button id="addBtn">Add Item</button>
+  </div>
+
+  <!-- Right Column -->
+  <div id="rightColumn">
+    <div class="list-container">
+      <h3>Freezer 1</h3>
+      <ul id="freezer1List"></ul>
+    </div>
+    <div class="list-container">
+      <h3>Freezer 2</h3>
+      <ul id="freezer2List"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
 <script>
-  const data = {
-    freezer1: [],
-    freezer2: [],
+  // Initialize Supabase
+  const supabaseUrl = 'https://klpcrupzetzwtcgwqusa.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  // Local data cache (maps location -> array of items)
+  // Each item: { id, name, section }
+  const dataStore = {
     fridge: [],
-    grocery: []
+    grocery: [],
+    freezer1: [],
+    freezer2: []
   };
 
-  // Load saved data from localStorage
-  function loadData() {
-    const saved = localStorage.getItem('storageData');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      Object.assign(data, parsed);
-    }
-  }
+  // Load data from Supabase
+  async function loadData() {
+    const { data, error } = await supabase
+      .from('storage_items')
+      .select('*')
+      .order('id', { ascending: true });
 
-  // Save data to localStorage
-  function saveData() {
-    localStorage.setItem('storageData', JSON.stringify(data));
-  }
-
-  // Render lists
-  function renderList(location) {
-    const listElement = document.getElementById(location + 'List');
-    listElement.innerHTML = '';
-    data[location].forEach((item, idx) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${item.name}</span> ${item.section ? `<span class="section">(${item.section})</span>` : ''}`;
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'X';
-      delBtn.className = 'delete-btn';
-      delBtn.onclick = () => {
-        if (confirm('Delete this item?')) {
-          data[location].splice(idx, 1);
-          saveData();
-          renderList(location);
-        }
-      };
-      li.appendChild(delBtn);
-      listElement.appendChild(li);
-    });
-  }
-
-  // Render all lists
-  function renderAll() {
-    ['fridge', 'grocery', 'freezer1', 'freezer2'].forEach(renderList);
-  }
-
-  // Add item handler
-  document.getElementById('addBtn').onclick = () => {
-    const location = document.getElementById('locationSelect').value;
-    const name = document.getElementById('itemNameInput').value.trim();
-    const section = document.getElementById('itemSectionInput').value.trim();
-
-    if (!name) {
-      alert('Please enter an item name.');
+    if (error) {
+      alert('Error loading data from server: ' + error.message);
       return;
     }
 
-    data[location].push({ name, section });
-    saveData();
-    renderList(location);
+    // Clear local cache
+    for (const loc in dataStore) {
+      dataStore[loc] = [];
+    }
 
-    document.getElementById('itemNameInput').value = '';
-    document.getElementById('itemSectionInput').value = '';
-  };
+    // Fill dataStore by location
+    data.forEach(item => {
+      if (dataStore[item.location]) {
+        dataStore[item.location].push({
+          id: item.id,
+          name: item.name,
+          section: item.section
+        });
+      }
+    });
 
-  // Initialize app
-  loadData();
-  renderAll();
-</script>
+    renderAll();
+  }
 
-</body>
-</html>
+  // Save a new item to Supabase
+  async function addItem(location, name, section) {
+    const { data, error } = await supabase
+      .from('storage_items')
+      .insert([{ location, name, section }]);
+
+    if (error) {
+      alert('Error adding item: ' + error.message);
+      return;
+    }
+
+    await loadData(); // reload after add
+  }
+
+  // Delete item by id
+  async function deleteItem(id) {
+    const {
