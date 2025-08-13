@@ -2,307 +2,263 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Storage & Grocery Manager - Improved</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Storage & Grocery Manager</title>
 <style>
+  /* Reset & base */
   * {
     box-sizing: border-box;
   }
   body {
-    margin: 0; padding: 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
     background: linear-gradient(160deg, #89f7fe 0%, #66a6ff 100%);
-    color: #222;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: stretch;
+    flex-direction: column;
+  }
+  h2 {
+    margin: 0 0 15px 0;
   }
 
-  #container {
+  /* Container */
+  #app {
     max-width: 1200px;
-    width: 100%;
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
+    margin: 30px auto;
+    background: rgba(255 255 255 / 0.95);
+    border-radius: 15px;
+    padding: 25px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 25px;
+    height: 80vh;
   }
 
-  /* Left side: Fridge + Grocery stacked */
-  #leftSide {
-    flex: 1 1 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-  }
-
-  /* Right side: Freezers inside ring */
-  #rightSide {
-    flex: 1 1 300px;
-    position: relative;
+  /* Left and Right columns */
+  #leftColumn, #rightColumn {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    align-items: center;
-    justify-content: center;
+    gap: 20px;
   }
-
-  #ring {
-    border: 10px solid #4caf50;
-    border-radius: 50%;
-    width: 350px;
-    height: 350px;
-    padding: 40px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    background: white;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  .list-container {
+    background: #f7f7f7;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+    flex-grow: 1;
+    overflow-y: auto;
   }
-
-  h3 {
-    margin: 0 0 10px 0;
-    color: #4caf50;
-    font-weight: 700;
-    text-align: center;
+  .list-container h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
   }
 
   ul {
     list-style: none;
-    padding: 10px;
-    background: #f7f7f7;
-    border-radius: 12px;
-    min-height: 150px;
-    max-height: 160px;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
-    overflow-y: auto;
+    padding: 0;
     margin: 0;
   }
-
   li {
-    padding: 8px 12px;
-    margin-bottom: 8px;
     background: #fff;
     border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    font-size: 15px;
+  }
+  li span.section {
+    font-size: 0.85em;
+    color: #555;
+    font-style: italic;
   }
 
-  .btn-delete {
+  button.delete-btn {
     background: #e74c3c;
     border: none;
     color: white;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    padding: 4px 8px;
-    font-size: 14px;
+    padding: 5px 10px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  button.delete-btn:hover {
+    background: #c0392b;
   }
 
-  /* Middle form */
-  #middleForm {
-    flex: 0 0 300px;
-    background: white;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  /* Center column (form) */
+  #centerColumn {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    justify-content: center;
-  }
-
-  select, input, button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-
-  button {
-    background: #4caf50;
-    border: none;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  button:hover {
-    background: #388e3c;
+    gap: 15px;
+    background: #f0f6ff;
+    border-radius: 15px;
+    padding: 20px;
   }
 
   label {
     font-weight: 600;
-    margin-bottom: 5px;
-    color: #333;
+  }
+  select, input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+  }
+  select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #4caf50;
   }
 
+  button#addBtn {
+    background: #4caf50;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  button#addBtn:hover {
+    background: #388e3c;
+  }
+
+  /* Responsive */
   @media (max-width: 900px) {
-    #container {
-      flex-direction: column;
-      align-items: center;
+    #app {
+      grid-template-columns: 1fr;
+      height: auto;
     }
-    #leftSide, #rightSide, #middleForm {
-      flex: none;
-      width: 100%;
-      max-width: 500px;
-    }
-    #ring {
-      width: 300px;
-      height: 300px;
-      padding: 30px;
+    #leftColumn, #centerColumn, #rightColumn {
+      height: auto;
     }
   }
 </style>
 </head>
 <body>
 
-<div id="container">
-
-  <div id="leftSide">
-    <div>
-      <h3>Fridge</h3>
-      <ul id="fridgeList">Loading...</ul>
+  <div id="app">
+    <!-- Left: Fridge & Grocery -->
+    <div id="leftColumn">
+      <div class="list-container" id="fridgeListContainer">
+        <h3>Fridge</h3>
+        <ul id="fridgeList"></ul>
+      </div>
+      <div class="list-container" id="groceryListContainer">
+        <h3>Grocery List</h3>
+        <ul id="groceryList"></ul>
+      </div>
     </div>
-    <div>
-      <h3>Grocery List</h3>
-      <ul id="groceryList">Loading...</ul>
+
+    <!-- Center: Form -->
+    <div id="centerColumn">
+      <label for="locationSelect">Select Location</label>
+      <select id="locationSelect">
+        <option value="fridge">Fridge</option>
+        <option value="grocery">Grocery List</option>
+        <option value="freezer1">Freezer 1</option>
+        <option value="freezer2">Freezer 2</option>
+      </select>
+
+      <label for="itemNameInput">Item Name</label>
+      <input type="text" id="itemNameInput" placeholder="Enter item name" />
+
+      <label for="itemSectionInput">Shelf / Compartment (optional)</label>
+      <input type="text" id="itemSectionInput" placeholder="Enter shelf or compartment" />
+
+      <button id="addBtn">Add Item</button>
     </div>
-  </div>
 
-  <div id="middleForm">
-    <label for="itemTab">Choose Storage</label>
-    <select id="itemTab" aria-label="Choose storage location">
-      <option value="freezer1">Freezer 1</option>
-      <option value="freezer2">Freezer 2</option>
-      <option value="fridge">Fridge</option>
-      <option value="grocery">Grocery</option>
-    </select>
-
-    <label for="itemName">Item Name</label>
-    <input type="text" id="itemName" placeholder="Enter item name" aria-label="Item name"/>
-
-    <label for="itemSection">Shelf / Compartment</label>
-    <input type="text" id="itemSection" placeholder="Optional - shelf or compartment" aria-label="Shelf or compartment" />
-
-    <button id="addBtn" aria-label="Add item">Add Item</button>
-  </div>
-
-  <div id="rightSide">
-    <div id="ring">
-      <div>
+    <!-- Right: Freezer 1 & Freezer 2 -->
+    <div id="rightColumn">
+      <div class="list-container" id="freezer1ListContainer">
         <h3>Freezer 1</h3>
-        <ul id="freezer1List">Loading...</ul>
+        <ul id="freezer1List"></ul>
       </div>
-      <div>
+      <div class="list-container" id="freezer2ListContainer">
         <h3>Freezer 2</h3>
-        <ul id="freezer2List">Loading...</ul>
+        <ul id="freezer2List"></ul>
       </div>
     </div>
   </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Initialize Supabase client correctly
-  const supabaseUrl = 'https://klpcrupzetzwtcgwqusa.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY';
+  const data = {
+    freezer1: [],
+    freezer2: [],
+    fridge: [],
+    grocery: []
+  };
 
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-  // Load items for a tab, render to UL with given id
-  async function loadList(tab, ulId) {
-    const { data, error } = await supabase
-      .from('storage_items')
-      .select('*')
-      .eq('tab', tab)
-      .order('inserted_at', { ascending: true });
-
-    const ul = document.getElementById(ulId);
-    ul.innerHTML = "";
-
-    if (error) {
-      ul.innerHTML = "<li style='color:red;'>Error loading items</li>";
-      console.error(error);
-      return;
+  // Load saved data from localStorage
+  function loadData() {
+    const saved = localStorage.getItem('storageData');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(data, parsed);
     }
+  }
 
-    if (!data.length) {
-      ul.innerHTML = "<li><i>No items</i></li>";
-      return;
-    }
+  // Save data to localStorage
+  function saveData() {
+    localStorage.setItem('storageData', JSON.stringify(data));
+  }
 
-    data.forEach(item => {
+  // Render lists
+  function renderList(location) {
+    const listElement = document.getElementById(location + 'List');
+    listElement.innerHTML = '';
+    data[location].forEach((item, idx) => {
       const li = document.createElement('li');
-      li.textContent = item.name + (item.section ? ` (${item.section})` : '');
-
-      const btn = document.createElement('button');
-      btn.textContent = "X";
-      btn.className = "btn-delete";
-      btn.title = "Delete this item";
-      btn.onclick = () => deleteItem(item.id);
-
-      li.appendChild(btn);
-      ul.appendChild(li);
+      li.innerHTML = `<span>${item.name}</span> ${item.section ? `<span class="section">(${item.section})</span>` : ''}`;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'X';
+      delBtn.className = 'delete-btn';
+      delBtn.onclick = () => {
+        if (confirm('Delete this item?')) {
+          data[location].splice(idx, 1);
+          saveData();
+          renderList(location);
+        }
+      };
+      li.appendChild(delBtn);
+      listElement.appendChild(li);
     });
   }
 
-  async function loadAll() {
-    await Promise.all([
-      loadList('fridge', 'fridgeList'),
-      loadList('grocery', 'groceryList'),
-      loadList('freezer1', 'freezer1List'),
-      loadList('freezer2', 'freezer2List')
-    ]);
+  // Render all lists
+  function renderAll() {
+    ['fridge', 'grocery', 'freezer1', 'freezer2'].forEach(renderList);
   }
 
-  async function addItem() {
-    const tab = document.getElementById('itemTab').value;
-    const name = document.getElementById('itemName').value.trim();
-    const section = document.getElementById('itemSection').value.trim();
+  // Add item handler
+  document.getElementById('addBtn').onclick = () => {
+    const location = document.getElementById('locationSelect').value;
+    const name = document.getElementById('itemNameInput').value.trim();
+    const section = document.getElementById('itemSectionInput').value.trim();
 
     if (!name) {
       alert('Please enter an item name.');
       return;
     }
 
-    const { error } = await supabase.from('storage_items').insert([{
-      tab,
-      name,
-      section: section || null
-    }]);
+    data[location].push({ name, section });
+    saveData();
+    renderList(location);
 
-    if (error) {
-      alert('Failed to add item. Check console for details.');
-      console.error(error);
-      return;
-    }
+    document.getElementById('itemNameInput').value = '';
+    document.getElementById('itemSectionInput').value = '';
+  };
 
-    document.getElementById('itemName').value = '';
-    document.getElementById('itemSection').value = '';
-    loadAll();
-  }
-
-  async function deleteItem(id) {
-    if (!confirm('Delete this item?')) return;
-
-    const { error } = await supabase.from('storage_items').delete().eq('id', id);
-    if (error) {
-      alert('Failed to delete item.');
-      return;
-    }
-    loadAll();
-  }
-
-  document.getElementById('addBtn').addEventListener('click', addItem);
-
-  window.onload = loadAll;
+  // Initialize app
+  loadData();
+  renderAll();
 </script>
 
 </body>
