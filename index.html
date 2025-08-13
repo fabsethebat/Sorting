@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Storage & Grocery Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(160deg, #89f7fe 0%, #66a6ff 100%);
+            margin: 0;
+            padding: 0;
+        }
+
+        #login, #main {
+            max-width: 1000px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        input, button {
+            padding: 12px;
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .tab {
+            display: inline-block;
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #eee;
+            border-radius: 12px;
+            margin-right: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+            .tab.active {
+                background: #4CAF50;
+                color: white;
+            }
+
+            .tab:hover {
+                background: #ccc;
+            }
+
+        #addItemSection {
+            margin-top: 20px;
+        }
+
+        .list-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 10px;
+            background: #f7f7f7;
+            border-radius: 12px;
+            min-height: 150px;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+
+        li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-small {
+            margin-left: 5px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background: red;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login -->
+    <div id="login">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Main App -->
+    <div id="main" style="display:none;">
+        <h2>Storage & Grocery Manager</h2>
+
+        <!-- Tabs -->
+        <div>
+            <span class="tab" id="tab-freezer1" onclick="switchTab('freezer1', this)">Freezer 1</span>
+            <span class="tab" id="tab-freezer2" onclick="switchTab('freezer2', this)">Freezer 2</span>
+            <span class="tab" id="tab-fridge" onclick="switchTab('fridge', this)">Fridge</span>
+            <span class="tab" id="tab-grocery" onclick="switchTab('grocery', this)">Grocery List</span>
+        </div>
+
+        <!-- Add Item -->
+        <div id="addItemSection">
+            <input type="text" id="itemName" placeholder="Item name">
+            <input type="text" id="itemSection" placeholder="Section/Shelf (optional)">
+            <button onclick="addItem()">Add Item</button>
+        </div>
+
+        <!-- List Display -->
+        <div id="listSection" class="list-container">
+            <ul id="itemList"></ul>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = "freezer1";
+        let data = {
+            freezer1: [],
+            freezer2: [],
+            fridge: [],
+            grocery: []
+        };
+
+        // Load data from localStorage before login
+        window.addEventListener("DOMContentLoaded", () => {
+            const saved = localStorage.getItem("storageData");
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        });
+
+        function saveData() {
+            localStorage.setItem("storageData", JSON.stringify(data));
+        }
+
+        function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+
+            if (user === "TinaOgBirger" && pass === "TinaOgBirgerP68") {
+                document.getElementById("login").style.display = "none";
+                document.getElementById("main").style.display = "block";
+
+                // Set initial tab and show data
+                const defaultTab = document.getElementById("tab-freezer1");
+                switchTab("freezer1", defaultTab);
+            } else {
+                alert("Wrong username or password");
+            }
+        }
+
+        function switchTab(tabName, element) {
+            currentTab = tabName;
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            element.classList.add("active");
+            renderList();
+        }
+
+        function addItem() {
+            const name = document.getElementById("itemName").value.trim();
+            const section = document.getElementById("itemSection").value.trim();
+
+            if (name === "") {
+                alert("Item name cannot be empty.");
+                return;
+            }
+
+            if (!data[currentTab]) {
+                data[currentTab] = [];
+            }
+
+            data[currentTab].push({ name, section });
+            saveData();
+            renderList();
+
+            document.getElementById("itemName").value = "";
+            document.getElementById("itemSection").value = "";
+        }
+
+        function renderList() {
+            const list = document.getElementById("itemList");
+            list.innerHTML = "";
+
+            if (!data[currentTab]) {
+                data[currentTab] = [];
+            }
+
+            data[currentTab].forEach((item, index) => {
+                const li = document.createElement("li");
+                li.textContent = item.name + (item.section ? " (" + item.section + ")" : "");
+
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "X";
+                delBtn.className = "btn-small btn-delete";
+                delBtn.onclick = () => {
+                    if (confirm("Delete this item?")) {
+                        data[currentTab].splice(index, 1);
+                        saveData();
+                        renderList();
+                    }
+                };
+
+                li.appendChild(delBtn);
+                list.appendChild(li);
+            });
+        }
+    </script>
+
+</body>
+</html>
