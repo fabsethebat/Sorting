@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Storage & Grocery Manager - New Layout</title>
+<title>Storage & Grocery Manager - Improved</title>
 <style>
   * {
     box-sizing: border-box;
@@ -12,7 +12,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(160deg, #89f7fe 0%, #66a6ff 100%);
     color: #222;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: stretch;
@@ -23,11 +23,12 @@
     width: 100%;
     display: flex;
     gap: 30px;
+    flex-wrap: wrap;
   }
 
   /* Left side: Fridge + Grocery stacked */
   #leftSide {
-    flex: 1;
+    flex: 1 1 300px;
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -35,7 +36,7 @@
 
   /* Right side: Freezers inside ring */
   #rightSide {
-    flex: 1;
+    flex: 1 1 300px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -45,23 +46,24 @@
   }
 
   #ring {
-    border: 8px solid #4caf50;
+    border: 10px solid #4caf50;
     border-radius: 50%;
-    width: 400px;
-    height: 400px;
+    width: 350px;
+    height: 350px;
     padding: 40px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     background: white;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
   }
 
   h3 {
     margin: 0 0 10px 0;
     color: #4caf50;
     font-weight: 700;
+    text-align: center;
   }
 
   ul {
@@ -70,9 +72,10 @@
     background: #f7f7f7;
     border-radius: 12px;
     min-height: 150px;
+    max-height: 160px;
     box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
     overflow-y: auto;
-    max-height: 160px;
+    margin: 0;
   }
 
   li {
@@ -84,6 +87,7 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    font-size: 15px;
   }
 
   .btn-delete {
@@ -101,11 +105,11 @@
     flex: 0 0 300px;
     background: white;
     border-radius: 20px;
-    padding: 20px;
+    padding: 25px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 18px;
     justify-content: center;
   }
 
@@ -116,6 +120,7 @@
     border-radius: 12px;
     border: 1px solid #ccc;
     box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 
   button {
@@ -136,6 +141,23 @@
     margin-bottom: 5px;
     color: #333;
   }
+
+  @media (max-width: 900px) {
+    #container {
+      flex-direction: column;
+      align-items: center;
+    }
+    #leftSide, #rightSide, #middleForm {
+      flex: none;
+      width: 100%;
+      max-width: 500px;
+    }
+    #ring {
+      width: 300px;
+      height: 300px;
+      padding: 30px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -155,7 +177,7 @@
 
   <div id="middleForm">
     <label for="itemTab">Choose Storage</label>
-    <select id="itemTab">
+    <select id="itemTab" aria-label="Choose storage location">
       <option value="freezer1">Freezer 1</option>
       <option value="freezer2">Freezer 2</option>
       <option value="fridge">Fridge</option>
@@ -163,12 +185,12 @@
     </select>
 
     <label for="itemName">Item Name</label>
-    <input type="text" id="itemName" placeholder="Enter item name" />
+    <input type="text" id="itemName" placeholder="Enter item name" aria-label="Item name"/>
 
     <label for="itemSection">Shelf / Compartment</label>
-    <input type="text" id="itemSection" placeholder="Optional - shelf or compartment" />
+    <input type="text" id="itemSection" placeholder="Optional - shelf or compartment" aria-label="Shelf or compartment" />
 
-    <button onclick="addItem()">Add Item</button>
+    <button id="addBtn" aria-label="Add item">Add Item</button>
   </div>
 
   <div id="rightSide">
@@ -188,18 +210,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const supabase = supabase.createClient(
-    'https://klpcrupzetzwtcgwqusa.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY'
-  );
+  // Initialize Supabase client correctly
+  const supabaseUrl = 'https://klpcrupzetzwtcgwqusa.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtscGNydXB6ZXR6d3RjZ3dxdXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxMTc3OTksImV4cCI6MjA3MDY5Mzc5OX0.m9SewZK1KVsPn9HysghOuGokSn5efKSK22uUJ4BocbY';
 
-  // Utility: load items for a specific tab and render them in given UL element
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  // Load items for a tab, render to UL with given id
   async function loadList(tab, ulId) {
     const { data, error } = await supabase
       .from('storage_items')
       .select('*')
       .eq('tab', tab)
-      .order('inserted_at');
+      .order('inserted_at', { ascending: true });
 
     const ul = document.getElementById(ulId);
     ul.innerHTML = "";
@@ -218,10 +241,11 @@
     data.forEach(item => {
       const li = document.createElement('li');
       li.textContent = item.name + (item.section ? ` (${item.section})` : '');
-      
+
       const btn = document.createElement('button');
       btn.textContent = "X";
       btn.className = "btn-delete";
+      btn.title = "Delete this item";
       btn.onclick = () => deleteItem(item.id);
 
       li.appendChild(btn);
@@ -255,15 +279,13 @@
     }]);
 
     if (error) {
-      alert('Failed to add item.');
+      alert('Failed to add item. Check console for details.');
       console.error(error);
       return;
     }
 
-    // Clear inputs
     document.getElementById('itemName').value = '';
     document.getElementById('itemSection').value = '';
-
     loadAll();
   }
 
@@ -277,6 +299,8 @@
     }
     loadAll();
   }
+
+  document.getElementById('addBtn').addEventListener('click', addItem);
 
   window.onload = loadAll;
 </script>
